@@ -1,9 +1,13 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"featurez/config"
+	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 )
 
 type Handler struct {
@@ -38,8 +42,16 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 
 	logger := &Logger{
-		StatusCode: http.StatusOK,
-		Method:     r.Method,
+		StatusCode:  http.StatusOK,
+		Method:      r.Method,
+		RequestType: fmt.Sprint(reflect.TypeOf(h.Request)),
+	}
+
+	if config.Cfg.DebugMode {
+		var buf bytes.Buffer
+		buf.ReadFrom(r.Body)
+		logger.RequestData = buf.String()
+		logger.ResponseData = string(resp)
 	}
 
 	logger.LogInfo()

@@ -13,8 +13,9 @@ import (
 )
 
 var UpdateFeatureHandler = &api.Handler{
-	F:      UpdateFeature,
-	Method: http.MethodPost,
+	F:       UpdateFeature,
+	Method:  http.MethodPost,
+	Request: &messages.UpdateFeatureRequest{},
 }
 
 func UpdateFeature(ctx context.Context, message io.ReadCloser) ([]byte, error) {

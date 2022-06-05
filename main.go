@@ -5,6 +5,7 @@ import (
 	"featurez/api/feature"
 	"featurez/api/settings"
 	"featurez/clients"
+	"featurez/config"
 	"featurez/models"
 	"fmt"
 	"log"
@@ -12,24 +13,6 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
-)
-
-type config struct {
-	FeaturezHost     string `split_words:"true" default:"localhost"`
-	FeaturezPort     string `split_words:"true" default:"1000"`
-	RedisNoDB        bool   `split_words:"true" default:"false"`
-	RedisHost        string `split_words:"true" default:"localhost"`
-	RedisPort        string `split_words:"true" default:"6379"`
-	PostgresHost     string `split_words:"true" default:"localhost"`
-	PostgresPort     string `split_words:"true" default:"5432"`
-	PostgresUser     string `split_words:"true" default:"gorm"`
-	PostgresPassword string `split_words:"true" default:"gorm"`
-	PostgresDBName   string `split_words:"true" default:"gorm"`
-	APIRoute         string `split_words:"true" default:"/api"`
-}
-
-var (
-	cfg config
 )
 
 func main() {
@@ -40,13 +23,20 @@ func main() {
 	}
 
 	// process environment variables
-	err = envconfig.Process("", &cfg)
+	err = envconfig.Process("", &config.Cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// load postgresql
-	postgresDNS := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", cfg.PostgresHost, cfg.PostgresPort, cfg.PostgresUser, cfg.PostgresPassword, cfg.PostgresDBName)
+	postgresDNS := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		config.Cfg.PostgresHost,
+		config.Cfg.PostgresPort,
+		config.Cfg.PostgresUser,
+		config.Cfg.PostgresPassword,
+		config.Cfg.PostgresDBName,
+	)
 	clients.PostgresDB, err = clients.NewPostgresClient(postgresDNS)
 	if err != nil {
 		log.Fatal(err)
@@ -69,8 +59,8 @@ func main() {
 		clients.PostgresDB.Client.First(&usrSettings)
 	}
 
-	defaultRedisAddress := cfg.RedisHost + ":" + cfg.RedisPort
-	if cfg.RedisNoDB {
+	defaultRedisAddress := config.Cfg.RedisHost + ":" + config.Cfg.RedisPort
+	if config.Cfg.RedisNoDB {
 		clients.Redis = clients.NewRedisClient(defaultRedisAddress)
 	} else {
 		clients.Redis = clients.NewRedisClient(usrSettings.RedisAddress)
@@ -78,17 +68,18 @@ func main() {
 
 	pong, err := clients.Redis.Client.Ping(context.Background()).Result()
 	if err != nil {
-		log.Fatal("Redis Error:", err)
+		log.Println("Redis Error:", err)
 	}
 
 	log.Printf("%s! Redis successfully connected", pong)
 
 	mux := http.NewServeMux()
 
-	feature.Routes(cfg.APIRoute, mux, "/feature")
-	settings.Routes(cfg.APIRoute, mux, "/settings")
+	// routes
+	feature.Routes(config.Cfg.APIRoute, mux, "/feature")
+	settings.Routes(config.Cfg.APIRoute, mux, "/settings")
 
-	address := cfg.FeaturezHost + ":" + cfg.FeaturezPort
+	address := config.Cfg.FeaturezHost + ":" + config.Cfg.FeaturezPort
 
 	log.Printf("Featurez-api is alive and listening on %s", address)
 

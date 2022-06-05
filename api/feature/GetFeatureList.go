@@ -13,8 +13,9 @@ import (
 )
 
 var GetFeatureListHandler = &api.Handler{
-	F:      GetFeatureList,
-	Method: http.MethodGet,
+	F:       GetFeatureList,
+	Method:  http.MethodGet,
+	Request: &messages.GetFeatureListRequest{},
 }
 
 func GetFeatureList(ctx context.Context, message io.ReadCloser) ([]byte, error) {

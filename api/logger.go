@@ -7,10 +7,11 @@ import (
 )
 
 type Logger struct {
-	StatusCode int
-	Method     string
-	Request    string
-	Response   string
+	StatusCode   int
+	Method       string
+	RequestType  string
+	RequestData  string
+	ResponseData string
 }
 
 func (l *Logger) LogInfo() {

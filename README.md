@@ -51,7 +51,7 @@ Most environment variables are given defaults, but if you would like a different
 Run command
 
 ```sh
-go run main.go config.go
+go run main.go
 ```
 
 TODO

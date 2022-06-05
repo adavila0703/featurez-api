@@ -14,8 +14,9 @@ import (
 )
 
 var UpdateSettingsHandler = &api.Handler{
-	F:      UpdateSettings,
-	Method: http.MethodPost,
+	F:       UpdateSettings,
+	Method:  http.MethodPost,
+	Request: &messages.UpdateSettingsRequest{},
 }
 
 func UpdateSettings(ctx context.Context, message io.ReadCloser) ([]byte, error) {
@@ -33,6 +34,7 @@ func UpdateSettings(ctx context.Context, message io.ReadCloser) ([]byte, error) 
 	if usrSettings.ID != 0 {
 		usrSettings.RedisAddress = reqMsg.RedisAddress
 		clients.PostgresDB.Client.Save(&usrSettings)
+		clients.Redis = clients.NewRedisClient(reqMsg.RedisAddress)
 		respObject.Message = "address has been saved"
 	}
 

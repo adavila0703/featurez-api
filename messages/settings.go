@@ -7,3 +7,10 @@ type UpdateSettingsRequest struct {
 type UpdateSettingsResponse struct {
 	Message string `json:"message"`
 }
+
+type GetSettingsRequest struct {
+}
+
+type GetSettingsResponse struct {
+	RedisAddress string `json:"redis_address"`
+}
