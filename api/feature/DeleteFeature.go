@@ -3,8 +3,8 @@ package feature
 import (
 	"context"
 	"featurez/api"
-	"featurez/clients"
 	"featurez/messages"
+	"featurez/services"
 	"io"
 	"net/http"
 
@@ -25,7 +25,7 @@ func DeleteFeature(ctx context.Context, message io.ReadCloser) ([]byte, error) {
 	}
 
 	for _, featureName := range reqMsg.Name {
-		_, err := clients.Redis.Delete(ctx, featureName)
+		_, err := services.Redis.Delete(ctx, featureName)
 
 		if err != nil {
 			return nil, errors.WithStack(err)

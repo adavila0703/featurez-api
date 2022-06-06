@@ -3,8 +3,8 @@ package feature
 import (
 	"context"
 	"featurez/api"
-	"featurez/clients"
 	"featurez/messages"
+	"featurez/services"
 	"io"
 	"net/http"
 
@@ -19,7 +19,7 @@ var GetFeatureListHandler = &api.Handler{
 }
 
 func GetFeatureList(ctx context.Context, message io.ReadCloser) ([]byte, error) {
-	keys, err := clients.Redis.GetAllKeys(ctx)
+	keys, err := services.Redis.GetAllKeys(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func GetFeatureList(ctx context.Context, message io.ReadCloser) ([]byte, error) 
 	var featuresList []*messages.Feature
 
 	for _, key := range keys {
-		value, err := clients.Redis.GetValues(ctx, key)
+		value, err := services.Redis.GetValues(ctx, key)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}

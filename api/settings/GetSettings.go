@@ -3,9 +3,9 @@ package settings
 import (
 	"context"
 	"featurez/api"
-	"featurez/clients"
 	"featurez/messages"
 	"featurez/models"
+	"featurez/services"
 	"io"
 	"net/http"
 
@@ -22,7 +22,7 @@ var GetSettingsHandler = &api.Handler{
 func GetSettings(ctx context.Context, message io.ReadCloser) ([]byte, error) {
 	var settings *models.Settings
 
-	clients.PostgresDB.Client.First(&settings)
+	services.PostgresDB.Client.First(&settings)
 
 	respObject := &messages.GetSettingsResponse{}
 
