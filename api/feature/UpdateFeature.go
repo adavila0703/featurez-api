@@ -18,13 +18,13 @@ var UpdateFeatureHandler = &api.Handler{
 	Request: &messages.UpdateFeatureRequest{},
 }
 
-func UpdateFeature(ctx context.Context, message io.ReadCloser) ([]byte, error) {
+func UpdateFeature(ctx context.Context, message io.ReadCloser, redis *services.RedisService) ([]byte, error) {
 	reqMsg, err := validateUpdateFeature(message)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	services.Redis.SetKey(ctx, reqMsg.Name, reqMsg.Value)
+	redis.SetKey(ctx, reqMsg.Name, reqMsg.Value)
 
 	respObject := &messages.UpdateFeatureResponse{
 		Message: "Updated feature",

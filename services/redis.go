@@ -2,8 +2,11 @@ package services
 
 import (
 	"context"
+	"regexp"
+	"strings"
 
-	redis "github.com/go-redis/redis/v8"
+	"github.com/go-redis/redis/v8"
+	"github.com/pkg/errors"
 )
 
 var Redis *RedisService
@@ -24,9 +27,16 @@ type RedisService struct {
 var _ RedisServicer = (*RedisService)(nil)
 
 func NewRedisService(address string) *RedisService {
+	var addr string
+	if matched, _ := regexp.MatchString("http://", address); matched {
+		addrSlice := strings.Split(address, "/")
+		addr = addrSlice[2]
+	} else {
+		addr = address
+	}
 	return &RedisService{
 		Client: redis.NewClient(&redis.Options{
-			Addr: address,
+			Addr: addr,
 		}),
 	}
 }
@@ -38,25 +48,40 @@ func (r *RedisService) SetKey(ctx context.Context, key string, value interface{}
 func (r *RedisService) ScanKeys(ctx context.Context) ([]string, error) {
 	var cursor uint64
 	keys, _, err := r.Client.Scan(ctx, cursor, "", 0).Result()
-	return keys, err
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return keys, nil
 }
 
 func (r *RedisService) Exists(ctx context.Context, key string) (int64, error) {
 	exists, err := r.Client.Exists(ctx, key).Result()
-	return exists, err
+	if err != nil {
+		return 0, errors.WithStack(err)
+	}
+	return exists, nil
 }
 
 func (r *RedisService) GetAllKeys(ctx context.Context) ([]string, error) {
 	keys, err := r.Client.Keys(ctx, "*").Result()
-	return keys, err
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return keys, nil
 }
 
 func (r *RedisService) GetValues(ctx context.Context, key string) (string, error) {
 	value, err := r.Client.Get(ctx, key).Result()
-	return value, err
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	return value, nil
 }
 
 func (r *RedisService) Delete(ctx context.Context, key string) (int64, error) {
 	result, err := r.Client.Del(ctx, key).Result()
-	return result, err
+	if err != nil {
+		return 0, errors.WithStack(err)
+	}
+	return result, nil
 }

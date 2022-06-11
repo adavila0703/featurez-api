@@ -19,7 +19,7 @@ var GetSettingsHandler = &api.Handler{
 	Request: &messages.GetSettingsRequest{},
 }
 
-func GetSettings(ctx context.Context, message io.ReadCloser) ([]byte, error) {
+func GetSettings(ctx context.Context, message io.ReadCloser, redis *services.RedisService) ([]byte, error) {
 	var settings *models.Settings
 
 	services.PostgresDB.Client.First(&settings)

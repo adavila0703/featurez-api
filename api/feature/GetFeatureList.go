@@ -18,16 +18,16 @@ var GetFeatureListHandler = &api.Handler{
 	Request: &messages.GetFeatureListRequest{},
 }
 
-func GetFeatureList(ctx context.Context, message io.ReadCloser) ([]byte, error) {
-	keys, err := services.Redis.GetAllKeys(ctx)
+func GetFeatureList(ctx context.Context, message io.ReadCloser, redis *services.RedisService) ([]byte, error) {
+	keys, err := redis.GetAllKeys(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	var featuresList []*messages.Feature
 
 	for _, key := range keys {
-		value, err := services.Redis.GetValues(ctx, key)
+		value, err := redis.GetValues(ctx, key)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}

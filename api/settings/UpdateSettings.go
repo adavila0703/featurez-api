@@ -19,7 +19,7 @@ var UpdateSettingsHandler = &api.Handler{
 	Request: &messages.UpdateSettingsRequest{},
 }
 
-func UpdateSettings(ctx context.Context, message io.ReadCloser) ([]byte, error) {
+func UpdateSettings(ctx context.Context, message io.ReadCloser, redis *services.RedisService) ([]byte, error) {
 	reqMsg, err := validateUpdateSettings(message)
 	if err != nil {
 		return nil, errors.WithStack(err)

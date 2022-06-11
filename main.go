@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 )
@@ -66,7 +67,7 @@ func main() {
 		services.Redis = services.NewRedisService(usrSettings.RedisAddress)
 	}
 
-	pong, err := services.Redis.Client.Ping(context.Background()).Result()
+	pong, err := redis.Client.Ping(*services.Redis.Client, context.Background()).Result()
 	if err != nil {
 		log.Println("Redis Error:", err)
 	}

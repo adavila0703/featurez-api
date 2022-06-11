@@ -18,14 +18,14 @@ var DeleteFeatureHandler = &api.Handler{
 	Request: &messages.DeleteFeatureRequest{},
 }
 
-func DeleteFeature(ctx context.Context, message io.ReadCloser) ([]byte, error) {
+func DeleteFeature(ctx context.Context, message io.ReadCloser, redis *services.RedisService) ([]byte, error) {
 	reqMsg, err := validateDeleteFeature(message)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	for _, featureName := range reqMsg.Name {
-		_, err := services.Redis.Delete(ctx, featureName)
+		_, err := redis.Delete(ctx, featureName)
 
 		if err != nil {
 			return nil, errors.WithStack(err)
