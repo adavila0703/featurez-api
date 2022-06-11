@@ -3,8 +3,8 @@ package feature
 import (
 	"context"
 	"featurez/api"
-	"featurez/clients"
 	"featurez/messages"
+	"featurez/services"
 	"io"
 	"net/http"
 
@@ -18,13 +18,13 @@ var CreateFeatureHandler = &api.Handler{
 	Request: &messages.CreateFeatureRequest{},
 }
 
-func CreateFeature(ctx context.Context, message io.ReadCloser) ([]byte, error) {
+func CreateFeature(ctx context.Context, message io.ReadCloser, redis *services.RedisService) ([]byte, error) {
 	reqMsg, err := validateCreateFeature(message)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	result, err := clients.Redis.Exists(ctx, reqMsg.Name)
+	result, err := redis.Exists(ctx, reqMsg.Name)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -33,7 +33,7 @@ func CreateFeature(ctx context.Context, message io.ReadCloser) ([]byte, error) {
 		return nil, api.ErrFeatureAlreadyExists
 	}
 
-	clients.Redis.SetKey(ctx, reqMsg.Name, 0)
+	redis.SetKey(ctx, reqMsg.Name, 0)
 
 	respObject := &messages.CreateFeatureResponse{
 		Message:     "Feature flag has been set!",

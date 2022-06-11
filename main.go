@@ -4,13 +4,14 @@ import (
 	"context"
 	"featurez/api/feature"
 	"featurez/api/settings"
-	"featurez/clients"
 	"featurez/config"
 	"featurez/models"
+	"featurez/services"
 	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 )
@@ -37,36 +38,36 @@ func main() {
 		config.Cfg.PostgresPassword,
 		config.Cfg.PostgresDBName,
 	)
-	clients.PostgresDB, err = clients.NewPostgresClient(postgresDNS)
+	services.PostgresDB, err = services.NewPostgresClient(postgresDNS)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// migrate db schema
-	err = clients.PostgresDB.Client.AutoMigrate(&models.Settings{})
+	err = services.PostgresDB.Client.AutoMigrate(&models.Settings{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	var usrSettings *models.Settings
 
-	clients.PostgresDB.Client.First(&usrSettings)
+	services.PostgresDB.Client.First(&usrSettings)
 
 	// insert a new settings row if none was found
 	if usrSettings.ID == 0 {
 		newSettings := &models.Settings{RedisAddress: ""}
-		clients.PostgresDB.Client.Create(newSettings)
-		clients.PostgresDB.Client.First(&usrSettings)
+		services.PostgresDB.Client.Create(newSettings)
+		services.PostgresDB.Client.First(&usrSettings)
 	}
 
 	defaultRedisAddress := config.Cfg.RedisHost + ":" + config.Cfg.RedisPort
 	if config.Cfg.RedisNoDB {
-		clients.Redis = clients.NewRedisClient(defaultRedisAddress)
+		services.Redis = services.NewRedisService(defaultRedisAddress)
 	} else {
-		clients.Redis = clients.NewRedisClient(usrSettings.RedisAddress)
+		services.Redis = services.NewRedisService(usrSettings.RedisAddress)
 	}
 
-	pong, err := clients.Redis.Client.Ping(context.Background()).Result()
+	pong, err := redis.Client.Ping(*services.Redis.Client, context.Background()).Result()
 	if err != nil {
 		log.Println("Redis Error:", err)
 	}

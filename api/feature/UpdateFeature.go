@@ -3,8 +3,8 @@ package feature
 import (
 	"context"
 	"featurez/api"
-	"featurez/clients"
 	"featurez/messages"
+	"featurez/services"
 	"io"
 	"net/http"
 
@@ -18,13 +18,13 @@ var UpdateFeatureHandler = &api.Handler{
 	Request: &messages.UpdateFeatureRequest{},
 }
 
-func UpdateFeature(ctx context.Context, message io.ReadCloser) ([]byte, error) {
+func UpdateFeature(ctx context.Context, message io.ReadCloser, redis *services.RedisService) ([]byte, error) {
 	reqMsg, err := validateUpdateFeature(message)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	clients.Redis.SetKey(ctx, reqMsg.Name, reqMsg.Value)
+	redis.SetKey(ctx, reqMsg.Name, reqMsg.Value)
 
 	respObject := &messages.UpdateFeatureResponse{
 		Message: "Updated feature",

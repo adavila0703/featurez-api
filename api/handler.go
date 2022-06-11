@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"featurez/config"
+	"featurez/services"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 )
 
 type Handler struct {
-	F       func(ctx context.Context, message io.ReadCloser) ([]byte, error)
+	F       func(ctx context.Context, message io.ReadCloser, redis *services.RedisService) ([]byte, error)
 	Method  string
 	Request interface{}
 }
@@ -33,7 +34,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	resp, err := h.F(ctx, r.Body)
+	resp, err := h.F(ctx, r.Body, services.Redis)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

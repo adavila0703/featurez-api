@@ -1,5 +1,9 @@
 # featurez-api
 
+[![](https://godoc.org/github.com/adavila0703/featurez-api?status.svg)](http://godoc.org/github.com/adavila0703/featurez-api)
+[![Code Coverage](https://codecov.io/gh/adavila0703/featurez-api/branch/main/graph/badge.svg)](https://app.codecov.io/gh/adavila0703/featurez-api)
+[![Go Report Card](https://goreportcard.com/badge/github.com/adavila0703/featurez-api)](https://goreportcard.com/report/github.com/adavila0703/featurez-api)
+
 > Backend api for featurez
 
 ## What Is Featurez?

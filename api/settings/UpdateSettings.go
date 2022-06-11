@@ -3,9 +3,9 @@ package settings
 import (
 	"context"
 	"featurez/api"
-	"featurez/clients"
 	"featurez/messages"
 	"featurez/models"
+	"featurez/services"
 	"io"
 	"net/http"
 
@@ -19,7 +19,7 @@ var UpdateSettingsHandler = &api.Handler{
 	Request: &messages.UpdateSettingsRequest{},
 }
 
-func UpdateSettings(ctx context.Context, message io.ReadCloser) ([]byte, error) {
+func UpdateSettings(ctx context.Context, message io.ReadCloser, redis *services.RedisService) ([]byte, error) {
 	reqMsg, err := validateUpdateSettings(message)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -27,14 +27,14 @@ func UpdateSettings(ctx context.Context, message io.ReadCloser) ([]byte, error) 
 
 	var usrSettings *models.Settings
 
-	clients.PostgresDB.Client.First(&usrSettings)
+	services.PostgresDB.Client.First(&usrSettings)
 
 	respObject := &messages.UpdateSettingsResponse{}
 
 	if usrSettings.ID != 0 {
 		usrSettings.RedisAddress = reqMsg.RedisAddress
-		clients.PostgresDB.Client.Save(&usrSettings)
-		clients.Redis = clients.NewRedisClient(reqMsg.RedisAddress)
+		services.PostgresDB.Client.Save(&usrSettings)
+		services.Redis = services.NewRedisService(reqMsg.RedisAddress)
 		respObject.Message = "address has been saved"
 	}
 
