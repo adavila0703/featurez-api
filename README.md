@@ -58,14 +58,6 @@ Run command
 go run main.go
 ```
 
-### Testing
-
-Create mocks with mockery
-
-```sh
-mockery --all --inpackage
-```
-
 TODO
 
 1. Add password capabilities for Redis.
