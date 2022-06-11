@@ -24,7 +24,10 @@ func TestGetFeatureList(t *testing.T) {
 	mock.ExpectKeys("*").SetVal([]string{mockKey})
 	mock.ExpectGet(mockKey).SetVal(mockValue)
 
-	message := io.NopCloser(strings.NewReader("message"))
+	request, err := jsoniter.Marshal(&messages.GetFeatureListRequest{})
+	assert.NoError(err)
+
+	message := io.NopCloser(strings.NewReader(string(request)))
 	redisMock := &services.RedisService{
 		Client: db,
 	}

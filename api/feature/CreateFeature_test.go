@@ -5,7 +5,6 @@ import (
 	"featurez/api"
 	"featurez/messages"
 	"featurez/services"
-	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -23,13 +22,18 @@ func TestCreateFeature(t *testing.T) {
 		Client: db,
 	}
 
-	expectedKey := "key"
+	expectedFeature := "key"
 	expectedMessage := "Feature flag has been set!"
 
-	mock.ExpectExists(expectedKey).SetVal(0)
-	mock.ExpectSet(expectedKey, 0, 0)
+	mock.ExpectExists(expectedFeature).SetVal(0)
+	mock.ExpectSet(expectedFeature, 0, 0)
 
-	mockMessage := io.NopCloser(strings.NewReader(fmt.Sprintf(`{"name":"%s"}`, expectedKey)))
+	request, err := jsoniter.Marshal(&messages.CreateFeatureRequest{
+		Name: expectedFeature,
+	})
+	assert.NoError(err)
+
+	mockMessage := io.NopCloser(strings.NewReader(string(request)))
 	respJson, err := CreateFeature(context.Background(), mockMessage, redisMock)
 	assert.NoError(err)
 
@@ -37,7 +41,7 @@ func TestCreateFeature(t *testing.T) {
 	err = jsoniter.Unmarshal(respJson, &resp)
 	assert.NoError(err)
 
-	assert.Equal(expectedKey, resp.FeatureFlag)
+	assert.Equal(expectedFeature, resp.FeatureFlag)
 	assert.Equal(expectedMessage, resp.Message)
 }
 
@@ -49,11 +53,16 @@ func TestCreateFeature_KeyExists(t *testing.T) {
 		Client: db,
 	}
 
-	expectedKey := "key"
+	expectedFeature := "key"
 
-	mock.ExpectExists(expectedKey).SetVal(1)
+	mock.ExpectExists(expectedFeature).SetVal(1)
 
-	mockMessage := io.NopCloser(strings.NewReader(fmt.Sprintf(`{"name":"%s"}`, expectedKey)))
+	request, err := jsoniter.Marshal(&messages.CreateFeatureRequest{
+		Name: expectedFeature,
+	})
+	assert.NoError(err)
+
+	mockMessage := io.NopCloser(strings.NewReader(string(request)))
 	respJson, err := CreateFeature(context.Background(), mockMessage, redisMock)
 
 	assert.EqualError(err, api.ErrFeatureAlreadyExists.Error())
@@ -62,16 +71,28 @@ func TestCreateFeature_KeyExists(t *testing.T) {
 
 func TestValidateCreateFeature(t *testing.T) {
 	assert := assert.New(t)
-	mockMessage := io.NopCloser(strings.NewReader(fmt.Sprintf(`{"name":"test"}`)))
+
+	expectedFeature := "key"
+
+	request, err := jsoniter.Marshal(&messages.CreateFeatureRequest{
+		Name: expectedFeature,
+	})
+	assert.NoError(err)
+
+	mockMessage := io.NopCloser(strings.NewReader(string(request)))
 	reqMsg, err := validateCreateFeature(mockMessage)
 
 	assert.NoError(err)
-	assert.Equal("test", reqMsg.Name)
+	assert.Equal(expectedFeature, reqMsg.Name)
 }
 
 func TestValidateCreateFeature_ErrInvalidParameter(t *testing.T) {
 	assert := assert.New(t)
-	mockMessage := io.NopCloser(strings.NewReader(`{"name":""}`))
+	request, err := jsoniter.Marshal(&messages.CreateFeatureRequest{
+		Name: "",
+	})
+	assert.NoError(err)
+	mockMessage := io.NopCloser(strings.NewReader(string(request)))
 	reqMsg, err := validateCreateFeature(mockMessage)
 
 	assert.EqualError(err, api.ErrInvalidParameter.Error())

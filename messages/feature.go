@@ -26,7 +26,9 @@ type DeleteFeatureRequest struct {
 }
 
 type DeleteFeatureResponse struct {
-	Message string `json:"message"`
+	Deleted  []string `json:"deleted"`
+	NotFound []string `json:"not_found"`
+	Message  string   `json:"message"`
 }
 
 type UpdateFeatureRequest struct {

@@ -24,8 +24,17 @@ func DeleteFeature(ctx context.Context, message io.ReadCloser, redis *services.R
 		return nil, errors.WithStack(err)
 	}
 
+	var deleted []string
+	var notFound []string
+
 	for _, featureName := range reqMsg.Name {
-		_, err := redis.Delete(ctx, featureName)
+		found, err := redis.Delete(ctx, featureName)
+
+		if found == 0 {
+			deleted = append(deleted, featureName)
+		} else if found == 1 {
+			notFound = append(notFound, featureName)
+		}
 
 		if err != nil {
 			return nil, errors.WithStack(err)
@@ -33,7 +42,9 @@ func DeleteFeature(ctx context.Context, message io.ReadCloser, redis *services.R
 	}
 
 	respObject := &messages.DeleteFeatureResponse{
-		Message: "keys deleted",
+		Deleted:  deleted,
+		NotFound: notFound,
+		Message:  "keys deleted",
 	}
 
 	resp, err := jsoniter.Marshal(respObject)

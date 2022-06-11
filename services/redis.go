@@ -81,7 +81,7 @@ func (r *RedisService) GetValues(ctx context.Context, key string) (string, error
 func (r *RedisService) Delete(ctx context.Context, key string) (int64, error) {
 	result, err := r.Client.Del(ctx, key).Result()
 	if err != nil {
-		return 0, errors.WithStack(err)
+		return -1, errors.WithStack(err)
 	}
 	return result, nil
 }
