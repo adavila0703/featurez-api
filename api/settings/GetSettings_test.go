@@ -13,6 +13,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -21,17 +22,21 @@ func TestGetSettings(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	assert.NoError(err)
 
-	postgresMock, err := gorm.Open("postgres", db)
+	postgresMock, err := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
+	}))
 	assert.NoError(err)
 
-	services.PostgresDB.Client = postgresMock
+	services.PostgresDB = &services.PostgresClient{
+		Client: postgresMock,
+	}
 	defer db.Close()
 
 	var settings *models.Settings
 
 	expectedAddr := "localhost:1000"
 
-	mock.ExpectQuery(regexp.QuoteMeta(`select * from settings`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`select * from "settings"`)).
 		WithArgs(settings).
 		WillReturnRows(sqlmock.NewRows([]string{"redis_address"}).AddRow(expectedAddr))
 
